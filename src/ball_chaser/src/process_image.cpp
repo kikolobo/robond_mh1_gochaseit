@@ -27,8 +27,8 @@ void process_image_callback(const sensor_msgs::Image img)
     // Request a stop when there's no white ball seen by the camera
     int white_pixel = 255;
 
-    int img_center_area = (int)img.width / 3;
-    int img_right_area = (int)img.width - img_center_area;
+    int img_center_area = img.step / 3;
+    int img_right_area = img.step - img_center_area;
     int total_pixels = img.height * img.step;
    
     bool is_right = false;
@@ -36,11 +36,12 @@ void process_image_callback(const sensor_msgs::Image img)
     bool is_left = false;
     bool is_notInView = true;
     
-    for (int i = 0; i < total_pixels; i++) {
-        if (img.data[i] == white_pixel) {
+    for (int i = 0; i < total_pixels; i=i+3) {
+        int pixelValue = (img.data[i] + img.data[i+1] + img.data[i+3]) / 3;
+
+        if (pixelValue == white_pixel) {
 		is_notInView = false;
-		int row = i / img.width;
-		int col = i - (row * img.width);
+		int col = i % img.step;
 
 		if (col <= img_center_area) { is_left = true; ROS_INFO_STREAM("[L]"); }
 		if (col >= img_right_area) { is_right = true; ROS_INFO_STREAM("[R]");}
